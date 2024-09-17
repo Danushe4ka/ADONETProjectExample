@@ -93,7 +93,7 @@ namespace Lab2Places
                     case 5:
                         break;
                     default:
-                        Console.WriteLine("Nothing happened");
+                        Console.WriteLine("Nothing happened(");
                         break;
                 }
                 Console.ReadKey();
