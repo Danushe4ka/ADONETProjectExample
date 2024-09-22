@@ -1,42 +1,36 @@
-name: Build for Multiple Platforms
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-# Указываем, что процесс запускается при каждом push или pull request в репозиторий
+name: .NET
 on:
   push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
+    branches: [ RequestProcessing ]
+    paths:
+    - '**.cs'
+    - '**.csproj'
 
-# Определение матрицы для запуска процесса на нескольких платформах
+env:
+  DOTNET_VERSION: '8.0' # The .NET SDK version to use
+
 jobs:
-  build:
+  build-and-test:
+
+    name: build-and-test-${{matrix.os}}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest] # Компиляция на Linux и Windows
-        include:
-          - os: ubuntu-latest
-          - os: windows-latest
+        os: [ubuntu-latest, windows-latest]
 
     steps:
-      # Клонируем репозиторий
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      # Установка зависимостей (может отличаться для разных систем)
-      #  - name: Set up dependencies
-      #  run: |
-       #   if [[ "$RUNNER_OS" == "Linux" ]]; then
-        #    sudo apt-get update && sudo apt-get install -y <your-dependencies>
-        #  elif [[ "$RUNNER_OS" == "Windows" ]]; then
-          #  choco install <your-windows-dependencies>
-
-      # Выполняем сборку проекта
-      - name: Build project
-        run: |
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            make build  # Пример для Linux
-          elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            .\build.bat  # Пример для Windows
+    - name: Install dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
