@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using Lab2Places.Models;
 using Lab2Places.ViewModels;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Lab2Places.Service;
 
@@ -36,8 +39,22 @@ public partial class Db8011Context : DbContext
     public virtual DbSet<UserReview> UserReviews { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    // To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=db8011.public.databaseasp.net; Database=db8011; User Id=db8011; Password=9t#PR3g!2?Ac; Encrypt=False; MultipleActiveResultSets=True;");
+    {
+        ConfigurationBuilder builder = new();
+        ///Установка пути к текущему каталогу
+        builder.SetBasePath(Directory.GetCurrentDirectory());
+        // получаем конфигурацию из файла appsettings.json
+        builder.AddJsonFile("appsettings.json");
+        // создаем конфигурацию
+        IConfigurationRoot configuration = builder.AddUserSecrets<Program>().Build();
+        string connectionString = configuration.GetConnectionString("RemoteSQLConnection");
+        
+
+        _ = optionsBuilder
+                .UseSqlServer(connectionString)
+                .Options;
+        optionsBuilder.LogTo(message => System.Diagnostics.Debug.WriteLine(message));
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
